@@ -7,7 +7,8 @@
     height: 180px !important;
     z-index: 2147483647 !important;
     transform: translate3d(0, 0, 0) !important;
-    transition: transform .2s ease-out !important
+    transition: transform .2s ease-out !important;
+    display: block !important;
 }
 
 #xh-bar.bottom {
@@ -52,7 +53,7 @@ img.xh-highlight {
     display: block;
     position: fixed;
     width: 80%;
-    margin: 200px 9%;
+    margin: 200px 8%;
     margin-bottom: 0;
     top: 0;
     left: 0;
@@ -76,7 +77,7 @@ img.xh-highlight {
     margin-bottom: 20px;
     border-top: 1px solid #fff;
     padding-top: 10px;
-    height: 300px;
+    height: 250px;
     overflow-y: scroll;
 }
 
@@ -85,6 +86,11 @@ img.xh-highlight {
     padding-bottom: 10px;
     margin: 0;
 }
+
+.xh-review-section div {
+    background: #000 !important;
+}
+
 .xh-review-section .modal span {
     display: inline-block;
     padding: 0;
@@ -120,10 +126,14 @@ img.xh-highlight {
 .xh-review-section .modal-footer > div {
     float: right;
 }
-.xh-review-section .modal-footer button {
+.xh-review-section .modal-footer .button {
     background: #000;
     color: #fff;
     border: 1px solid #fff;
     border-radius: 5px;
     padding: 10px;
+    line-height: 12px !important;
+    text-decoration: none;
+    font-size: 12px;
+    height: 40px !important;
 }

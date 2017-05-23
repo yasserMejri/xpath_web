@@ -3,39 +3,10 @@
 */
 
 
-var field_dict = {
-    "car_postcode": [ /^(GIR ?0AA|(?:[A-PR-UWYZ](?:\d|\d{2}|[A-HK-Y]\d|[A-HK-Y]\d\d|\d[A-HJKSTUW]|[A-HK-Y]\d[ABEHMNPRV-Y])) ?\d[ABD-HJLNP-UW-Z]{2})$/i ], 
-    "dealer_name": [ /dealer\s*name/i ], 
-    "dealer_telephone": [/^[\\(]{0,1}([0-9]){3}[\\)]{0,1}[ ]?([^0-1]){1}([0-9]){2}[ ]?[-]?[ ]?([0-9]){4}[ ]*((x){0,1}([0-9]){1,5}){0,1}$/i, /^\(0[1-9]{1}\)[0-9]{8}$/i ], 
-    "dealer_url": [/^((http:\/\/www\.)|(www\.)|(http:\/\/))[a-zA-Z0-9._-]+\.[a-zA-Z.]{2,5}$/i], 
-    "dealer_email": [/^[A-Z0-9._-]+@[A-Z0-9.-]+\.[A-Z0-9.-]+$/i], 
-    "car_model": [/car\s*model/i, /model/i], 
-    "car_make": [/car\s*make/i, /make/i], 
-    "make_model": [/make\s*model/i], 
-    "model_variant": [/variant/i], 
-    "car_price": [/price/i, /(\£|\$)\d+/], 
-    "car_year": [/year/i], 
-    "mileage": [/mileage/i, /^\d+,?(\d|X|k)+\smiles/], 
-    "body_type": [/body\s*type/i, /body\s*style/i], 
-    "fuel_type": [/fuel\s*tyoe/i, /fueltype/i, /fuel/i], 
-    "engine_size": [/engine size/i, /cc$/i], 
-    "fuel_consumption": [/fuel fuel_consumption/i], 
-    "acceleration": [/acceleration/i], 
-    "gearbox": [/gearbox/i, /transmission/i], 
-    "drivetrain": [/drivetrain/i], 
-    "co2_emissions": [/co2/i, /co2\s*emissions/i], 
-    "doors": [/door/i], 
-    "seats": [/seat/i], 
-    "insurance_group": [/insurance/i, /ins\s*group/i],
-    "annual_tax": [/annual\s*tax/i, /annual\s*rating/i], 
-    "colour": [/color/i, /colour/i], 
-    "advertiser_type": [/advertiser\s*type/i], 
-    "car_description": [/description/i], 
-    "car_specification": [/specification/i], 
-    "image_urls": [/.*(jpeg|png|gif|bmp|jpg)/i], 
-    "next_image": [/next/i], 
-    "next_page": [/(next|next\s*page)/i]
-}
+var field_dict = {}
+
+var req = {}, silence =false, req_result = true, test = 1, url_id = -1, fields, nxt_url, nxt_complete_url; 
+req['type'] = 'postRequest';
 
 var MOVE_COOLDOWN_PERIOD_MS = 400,
     X_KEYCODE = 88,
@@ -79,41 +50,114 @@ var lastMoveTimeInMs = 0,
     },
     handleResponse = function(a) {
         console.log(a);
-        if(a['data']['result'].length == 0) {
-            save_id = -1;
-            current_row = [];
-            document.getElementById("dbrow").innerHTML = "Not registered to database!"; 
-            document.getElementById("dbfield").disabled=true;
-            document.getElementById("save-attr").disabled=true;
-            document.getElementById("save-result").disabled=true;
-            document.getElementById("review").disabled=true;
-            return ;
+        if(a['request']['test']=='1' && a['request']['type'] == 'get_this' && a['data']['status'] == 'success') {
+            $(".manage-pane").toggleClass("loggedout"); 
+            test = 0;
         }
-        save_id = a['data']['result'][0]['id'];
-        current_row = a['data']['result'][0]; 
-        current_result_row = a['data']['raw_result'][0];
-        document.getElementById("dbrow").innerHTML = a['data']['result'][0]['listing_url']; 
-        document.getElementById("dbfield").disabled=false;
-        document.getElementById("save-attr").disabled=false;
-        document.getElementById("save-result").disabled=false;
-        document.getElementById("review").disabled=false;
-        document.getElementById("dbfield").dispatchEvent(new Event('change'));
-        if(Number(current_row['is_complete']) == 1)
-            document.getElementById('dbrow').style.backgroundColor = '#009F00';
-        else 
-            document.getElementById('dbrow').style.backgroundColor = 'transparent';
+        if(a['data']['status'] == 'error') {
+            alert(a['data']['msg']); 
+        }
+        if(a['data']['status'] != 'success') {
+            req_result = false
+            return ; 
+        }
+
+        if(a['request']['type'] == 'login') {
+            var dbs_sel = document.getElementById("databases"); 
+            dbs_sel.innerHTML = '';
+            for(var db in a['data']['databases']) {
+                console.log(db);
+                var option = document.createElement('option');
+                option.value = a['data']['databases'][db]['id']
+                option.text = a['data']['databases'][db]['name']
+                dbs_sel.add(option);
+            }
+            document.getElementById('databases').disabled = false;
+            document.getElementById('go_btn').disabled = false;
+
+            localStorage.setItem('user', a['data']['user']); 
+
+            req_result = true;
+            return ; 
+        }
+
+        if(a['request']['type'] == 'get_this') {
+            if(a['data']['data'].length == 0) {
+                current_row = [];
+                document.getElementById("dbrow").innerHTML = "Not registered to database!"; 
+                document.getElementById("dbfield").disabled=true;
+                document.getElementById("save-attr").disabled=true;
+                document.getElementById("save-result").disabled=true;
+                document.getElementById("review").disabled=true;
+                document.getElementById('savelistingurl').style.display = 'block';
+                req_result = true;
+                return  ;
+            }
+
+            fields = a['data']['fields'];
+            var container = document.getElementById("dbfield");
+            container.innerHTML = '<option value="-">-</option>';
+            for(key in fields) {
+                var option = document.createElement('option');
+                option.value = key;
+                option.text = fields[key]['name'];
+                option.setAttribute('rule', fields[key]['rule']);
+                container.add(option);
+            }
+            current_row = JSON.parse(a['data']['data'][0]['data']);
+            current_result_row = JSON.parse(a['data']['data'][0]['data_results']);
+            for(item in a['data']['fields']) {
+                field_dict[item] = a['data']['fields'][item]['rule'].split(', '); 
+            }
+            url_id = a['data']['data'][0]['id'];
+            document.getElementById("dbrow").innerHTML=a['data']['data'][0]['url']
+            document.getElementById("dbfield").disabled=false;
+            document.getElementById("save-attr").disabled=false;
+            document.getElementById("save-result").disabled=false;
+            document.getElementById("review").disabled=false;
+            document.getElementById("dbfield").dispatchEvent(new Event('change'));
+
+            if(a['data']['data'][0]['complete'] == true)
+                document.getElementById('dbrow').style.backgroundColor = '#009F00';
+            else 
+                document.getElementById('dbrow').style.backgroundColor = 'transparent';
+
+            nxt_url = 'http://'+ a['data']['nxt_url'];
+            nxt_complete_url = 'http://'+ a['data']['nxt_complete_url'];
+
+            req_result = true;
+            return ; 
+        }
+
+        if(a['request']['type'] == 'completeinverse') {
+            refreshdb();
+        }
+
+        if(a['request']['type'] == 'save') {
+            if(a['data']['status'] == 'success') 
+                refreshdb();
+        }
+
     }, 
     detect_field = function(xpath, result) {
         var k, i;
         for(k in field_dict) {
             for(i = 0; i < field_dict[k].length; i ++) {
-                if(xpath.match(field_dict[k][i]) || result.match(field_dict[k][i])) {
-                    $("#dbfield").val(k); 
+                try {
+                    if(xpath.match(eval(field_dict[k][i]) || result.match(eval(field_dict[k][i])))) {
+                        $("#dbfield").val(k); 
+                    }
+                } catch(err) {
+                    console.log(err);
+                    continue;
                 }
             }
         }
         // $("#dbfield").val('-'); 
     }; 
+
+document.getElementById('databases').disabled = true;
+document.getElementById('go_btn').disabled = true;
 
 document.getElementById("move-button").addEventListener("click", function() {
     chrome.runtime.sendMessage({
@@ -133,15 +177,53 @@ for (var i = 0; i < elementGroupNames.length; i++) {
     elementGroup[elementGroupNames[i]] = elem
 }
 
+function refreshdb() {
+    user = localStorage.getItem('user');
+    database = localStorage.getItem('database'); 
+    req['param'] = {
+        'type': 'get_this', 
+        'home_url': '#####', 
+        'test': test, 
+        'user': user, 
+        'database': database 
+    }; 
+    chrome.runtime.sendMessage(req);
+}
+
 $(document).ready(function() {
 
     var dbfield = $("#dbfield"); 
     var dbrow = $("#dbrow"); 
     var ts;
     var home_url = window.location;
-    var req = {}; 
-    req['type'] = 'postRequest';
     // req['param'] = [];
+
+    refreshdb(); 
+
+    if (typeof(Storage) === "undefined") {
+        $(".manage-pane").html('<b class="box-name"> Sorry you can\'t use this feature!');
+    }
+
+    // Login and select DB -> GO
+    $("#login").click(function() {
+        req['param'] = {
+            'type': 'login', 
+            'username': $("#xh-username").val(), 
+            "password": $("#xh-password").val()
+        }
+        chrome.runtime.sendMessage(req);
+    }); 
+
+    $("#go_btn").click(function() {
+        localStorage.setItem('database', $("#databases").val()); 
+        $(".manage-pane").toggleClass('loggedout');
+        refreshdb();
+    });
+
+    $("#select-db").click(function() {
+        localStorage.setItem('database', "-1"); 
+        $(".manage-pane").toggleClass('loggedout');
+    }); 
 
     $("#save-attr").click(function() {
         var field = dbfield.val();
@@ -152,11 +234,16 @@ $(document).ready(function() {
         dbfield.css('border', 'none');
         var content = $("#query").val();
         // console.log("SAVING REQUEST: " + save_id + " | " + field + " - " + content); 
-        if(save_id == -1) {
-            req['param'] = {'type': 'save', 'id': save_id, 'home_url': '#####', 'field': field, 'content': content, 'result': $("#results").val()};
-        } else {
-            req['param'] = {'type': 'update', 'id': save_id, 'home_url': '#####', 'field': field, 'content': content, 'result': $("#results").val()};
-        }
+        req['param'] = {
+            'type': 'save', 
+            'home_url': '#####', 
+            'field': field, 
+            'content': content, 
+            'result': $("#results").val(),
+            'user': localStorage.getItem('user'), 
+            'database': localStorage.getItem('database'), 
+            'url_id': url_id
+        };
         chrome.runtime.sendMessage(req);
     }); 
 
@@ -167,18 +254,28 @@ $(document).ready(function() {
             dbfield.css('border', '2px solid #f00');
             return; 
         }
+
         dbfield.css('border', 'none');
         // console.log("SAVING REQUEST: " + save_id + " | " + field + " - " + content); 
-        if(save_id == -1) {
-            req['param'] = {'type': 'save', 'id': save_id, 'home_url': '#####', 'field': field, 'content': content, 'result': $("#results").val()};
-        } else {
-            req['param'] = {'type': 'update', 'id': save_id, 'home_url': '#####', 'field': field, 'content': content, 'result': $("#results").val()};
-        }
+        req['param'] = {
+            'type': 'save', 
+            'home_url': '#####', 
+            'field': field, 
+            'content': content, 
+            'result': $("#results").val(),
+            'user': localStorage.getItem('user'), 
+            'database': localStorage.getItem('database'), 
+            'url_id': url_id
+        };
         chrome.runtime.sendMessage(req);
     }); 
 
     $("#savelistingurl").click(function() {
-        req['param'] = {'type': 'saveurl', 'id': save_id, 'home_url': '#####', field: "listing_url"};
+        req['param'] = {
+            'type': 'saveurl', 
+            'home_url': '#####', 
+            field: "listing_url"
+        };
         chrome.runtime.sendMessage(req);
     }); 
 
@@ -191,16 +288,12 @@ $(document).ready(function() {
         chrome.runtime.sendMessage(req);
     }); 
 
-    function refreshdb() {
-        req['param'] = {'type': 'get_this', 'home_url': '#####' }; 
-        chrome.runtime.sendMessage(req);
-    }
-
-    refreshdb();
-
     $("#dbfield").change(function() {
-        $("#last_field_name").text($(this).val()); 
-        $("#last_field_value").text(current_row[$(this).val()]); 
+        console.log(current_row);
+        console.log($(this).val());
+        console.log(current_row[''+$(this).val()]);
+        $("#last_field_name").text($(this).children("option:selected").text()); 
+        $("#last_field_value").text(current_row[''+$(this).val()]); 
     }); 
 
     $("#dbfield").change(); 
@@ -208,8 +301,9 @@ $(document).ready(function() {
     $("#review").click(function() {
         var conatiner = $(".xh-review-section .modal-content > ul"), tp, cls, rp; 
         conatiner.html('');
-        $(".xh-review-section .modal-header").html('<h2>'+current_row['listing_url']+'</h2>');
-        for(k in field_dict) {
+        $(".xh-review-section .modal-header").html('<h2>'+$("#dbrow").text()+'</h2>');
+        console.log(current_row);
+        for(k in fields) {
             tp = '';
             if(current_row[k] == '') {
                 tp = 'blank';
@@ -224,14 +318,16 @@ $(document).ready(function() {
                     rp = current_result_row[k]; 
                 cls = '';
             }
-            conatiner.append('<li> <label>'+k+':</label><span class = "'+cls+'">'+tp+'</span><span class = "result '+cls+'">'+rp+'</span></li>'); 
+            conatiner.append('<li> <label>'+fields[k]['name']+':</label><span class = "'+cls+'">'+tp+'</span><span class = "result '+cls+'">'+rp+'</span></li>'); 
         }
         if(Number(current_row['is_complete']) == 1)
             $("#markascomplete").text("Mark as Incomplete");
+        $("#next_url").attr('href', nxt_url);
+        $("#next_incomplete_url").attr('href', nxt_complete_url);
         chrome.runtime.sendMessage({
             'type': 'show-review-section', 
             'element': $(".xh-review-section").clone().wrap('<div/>').parent().html(), 
-            'id': save_id
+            'id': url_id
         }); 
     }); 
 

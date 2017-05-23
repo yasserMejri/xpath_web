@@ -538,7 +538,7 @@ xh.Bar.prototype.handleRequest_ = function(a, c, b) {
                 'id': a.id
             }; 
             $.post(
-                "https://www.siteindex.co.uk/api.php", 
+                "http://localhost:8000/api/", 
                 param, function(r) {
                     r = JSON.parse(r);
                     chrome.runtime.sendMessage({
@@ -546,26 +546,26 @@ xh.Bar.prototype.handleRequest_ = function(a, c, b) {
                         'request': param,
                         'data': r
                     }); 
-                    if(Number(r['result'][0]['is_complete']) == 1) 
+                    if(r['complete'] == true) 
                         $("#markascomplete").text("Mark as Incomplete"); 
                     else 
                         $("#markascomplete").text("Mark as Complete"); 
                 }); 
         }); 
-        $(".xh-review-section button.nexturl").click(function() {
-            param = {
-                'type': 'nexturl', 
-                'new_url': $(this).hasClass('new'), 
-                'url': window.location.href
-            }
-            $.post(
-                "https://www.siteindex.co.uk/api.php", 
-                param, function(r) {
-                    r = JSON.parse(r);
-                    console.log(r);
-                    window.location = 'http://'+r['url'];
-                }); 
-        }); 
+        // $(".xh-review-section button.nexturl").click(function() {
+        //     param = {
+        //         'type': 'nexturl', 
+        //         'new_url': $(this).hasClass('new'), 
+        //         'url': window.location.href
+        //     }
+        //     $.post(
+        //         "http://localhost:8000/api/", 
+        //         param, function(r) {
+        //             r = JSON.parse(r);
+        //             console.log(r);
+        //             window.location = 'http://'+r['url'];
+        //         }); 
+        // }); 
     }
 
 };
@@ -590,8 +590,9 @@ xh.Bar.prototype.postRequest_ = function(a) {
         // a['home_url'] = h.slice(0, h.slice(9).search('/') + 9);
         a['home_url'] = h;
     }
+    console.log(a);
     $.post(
-        "https://www.siteindex.co.uk/api.php", 
+        "http://localhost:8000/api/", 
         a, function(r) {
             r = JSON.parse(r);
             // console.log(r);

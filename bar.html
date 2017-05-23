@@ -33,7 +33,7 @@
             <label for="relative" class="box-name horizontal-space"> Relative Xpath </label>
             <input type="checkbox" id="relative" name="relative">
         </div>
-        <div id="save-button">
+        <div id="save" class="manage-pane loggedout">
             <span class="box-name"> Select appropriate field : </span>
             <select name="dbfield" id="dbfield">
                 <option value="-" selected > --- </option>
@@ -92,17 +92,27 @@
     <br>
 </div>
 
-<div>
-    <span class="box-name"> Current Row: </span>
+<div class="manage-pane" id="login_pane">
+    <label class="box-name" for="xh-username"> Username: </label>
+    <input type="text" id="xh-username" />
+    <label class="box-name" for="xh-password"> Password: </label>
+    <input type="password" id="xh-password" />
+    <button type="button" id="login" value="login"> Login </button>
+
+    <select id="databases"> </select>
+    <button id="go_btn"> >> Go  </button>
+</div>
+
+<div class = "manage-pane loggedout very-bottom">
+    <span class="box-name"> Current URL: </span>
     <span id = "dbrow" class="box-data" > </span>
-    <button id = "savelistingurl"> Save listing Url. </button>
+    <button id = "savelistingurl" style="display: none;" > Save listing Url. </button> 
     <button id="refresh-dbrow"> ... </button>
     <span class="box-name"> Last saved </span>
     <span id = "last_field_name" class="box-data" > </span> : <span id = "last_field_value" class="box-data" > </span>
+    <button id="select-db" class="pull-right"> Logout </button>
     <button id="xh-remove" class="pull-right"> Remove selected </button>
 </div>
-
-<hr/>
 
 <div class="xh-review-section">
     <div class="modal-background"> </div>
@@ -112,9 +122,9 @@
         <div class="modal-content"> <ul> </ul> </div>
         <div class="modal-footer">
             <div>
-                <button class="nexturl"> Next Url </button>
-                <button class="nexturl new"> Next Incomplete Url </button>
-                <button id="markascomplete"> Mark as Complete </button>
+                <a class="button nexturl" href="" id="next_url"> Next Url </a>
+                <a class="button nexturl new" href="" id="next_incomplete_url"> Next Incomplete Url </a>
+                <button id="markascomplete" class="button"> Mark as Complete </button>
             </div>
         </div>
     </div>

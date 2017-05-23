@@ -143,3 +143,19 @@ textarea {
 .box-data {
     color: #fff;
 }
+
+.xh-review-section {
+    display: none;
+}
+
+.manage-pane {
+    display: block;
+}
+
+.manage-pane.loggedout {
+    display: none;
+}
+
+.manage-pane.very-bottom {
+    margin-top: 3px;
+}
