@@ -6,6 +6,8 @@
 
 var relative_mode=false;
 
+var api_url = 'http://siteindex.co.uk:8001/api/';
+
 
 if(Array.prototype.equals)
     console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
@@ -538,7 +540,7 @@ xh.Bar.prototype.handleRequest_ = function(a, c, b) {
                 'id': a.id
             }; 
             $.post(
-                "http://localhost:8000/api/", 
+                api_url, 
                 param, function(r) {
                     r = JSON.parse(r);
                     chrome.runtime.sendMessage({
@@ -592,7 +594,7 @@ xh.Bar.prototype.postRequest_ = function(a) {
     }
     console.log(a);
     $.post(
-        "http://localhost:8000/api/", 
+        api_url, 
         a, function(r) {
             r = JSON.parse(r);
             // console.log(r);

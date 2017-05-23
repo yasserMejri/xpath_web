@@ -2,10 +2,10 @@
 "update_url": "https://clients2.google.com/service/update2/crx",
 
   "manifest_version": 2,
-  "name": "XPath Helper Wizard",
-  "short_name": "XPath Helper Wizard",
-  "version": "3.0.24",
-  "description": "Create XPath queries select similar elements and visualize the results.",
+  "name": "XPath Extract",
+  "short_name": "XPath Extract",
+  "version": "1.0.2",
+  "description": "Create XPath queries select Interact with siteindex.",
   "background": {
     "page": "background.html"
   },
