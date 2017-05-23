@@ -6,8 +6,8 @@
 
 var relative_mode=false;
 
-var api_url = 'http://siteindex.co.uk:8001/api/';
-
+// var api_url = 'http://siteindex.co.uk:8001/api/';
+var api_url = 'http://localhost:8000/api/';
 
 if(Array.prototype.equals)
     console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");

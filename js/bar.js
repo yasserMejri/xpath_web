@@ -89,7 +89,7 @@ var lastMoveTimeInMs = 0,
                 document.getElementById("save-attr").disabled=true;
                 document.getElementById("save-result").disabled=true;
                 document.getElementById("review").disabled=true;
-                document.getElementById('savelistingurl').style.display = 'block';
+                document.getElementById('savelistingurl').style.display = 'inline';
                 req_result = true;
                 return  ;
             }
@@ -130,6 +130,10 @@ var lastMoveTimeInMs = 0,
         }
 
         if(a['request']['type'] == 'completeinverse') {
+            refreshdb();
+        }
+
+        if(a['request']['type'] == 'saveurl') {
             refreshdb();
         }
 
@@ -274,7 +278,8 @@ $(document).ready(function() {
         req['param'] = {
             'type': 'saveurl', 
             'home_url': '#####', 
-            field: "listing_url"
+            'user': localStorage.getItem('user'), 
+            'database': localStorage.getItem('database'), 
         };
         chrome.runtime.sendMessage(req);
     }); 
