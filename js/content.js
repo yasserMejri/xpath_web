@@ -6,8 +6,8 @@
 
 var relative_mode=false;
 
-// var api_url = 'http://siteindex.co.uk:8001/api/';
-var api_url = 'http://localhost:8000/api/';
+var api_url = 'https://siteindex.co.uk/xpath/api/';
+// var api_url = 'http://localhost:8000/api/';
 
 if(Array.prototype.equals)
     console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
@@ -188,6 +188,20 @@ xh.highlight = function(a) {
 xh.clearHighlights = function() {
     for (var a = document.querySelectorAll(".xh-highlight"), c = 0, b = a.length; c < b; c++) a[c].classList.remove("xh-highlight")
 };
+
+// document.getHTML= function(who, deep){
+//     if(!who || !who.tagName) return '';
+//     var txt, ax, el= document.createElement("div");
+//     el.appendChild(who.cloneNode(false));
+//     txt= el.innerHTML;
+//     if(deep){
+//         ax= txt.indexOf('>')+1;
+//         txt= txt.substring(0, ax)+who.innerHTML+ txt.substring(ax);
+//     }
+//     el= null;
+//     return txt;
+// }
+
 xh.evaluateQuery = function(a, h=false) {
     var c = null,
         b = "",
@@ -203,8 +217,13 @@ xh.evaluateQuery = function(a, h=false) {
     else if (c.resultType === XPathResult.NUMBER_TYPE) b = c.numberValue.toString(), d = 1;
     else if (c.resultType === XPathResult.STRING_TYPE) b = c.stringValue, d = 1;
     else if (c.resultType === XPathResult.UNORDERED_NODE_ITERATOR_TYPE) {
-        for (a = c.iterateNext(); a; a = c.iterateNext()) a.nodeType ===
-            Node.ELEMENT_NODE && g.push(a), b && (b += "\n"), b += a.textContent, d++;
+        for (a = c.iterateNext(); a; a = c.iterateNext()) {
+            a.nodeType ===Node.ELEMENT_NODE && g.push(a), b && (b += "\n");
+            var tt = a.outerHTML;
+            if(tt) b += tt;
+            else b+= a.textContent;
+            d++;
+        }
         0 === d && (b = "[NULL]")
     } else b = "[INTERNAL ERROR]", d = 0;
     if(h) xh.highlight(g);
@@ -528,12 +547,14 @@ xh.Bar.prototype.handleRequest_ = function(a, c, b) {
     if("show-review-section" == a.type) {
         $("body .xh-review-section").remove();
         $("body").append(a.element);
-        console.log(a.element);
+        // console.log(a.element);
         // $(".xh-review-section")
         $(".xh-review-section .modal-background").click(function() {
             $(this).parent().hide();
             $(this).parent().remove();
         }); 
+        $("#result-list").sortable();
+        $("#result-list").disableSelection();
         $("#markascomplete").click(function() {
             param = {
                 'type': 'completeinverse', 
@@ -554,20 +575,36 @@ xh.Bar.prototype.handleRequest_ = function(a, c, b) {
                         $("#markascomplete").text("Mark as Complete"); 
                 }); 
         }); 
-        // $(".xh-review-section button.nexturl").click(function() {
-        //     param = {
-        //         'type': 'nexturl', 
-        //         'new_url': $(this).hasClass('new'), 
-        //         'url': window.location.href
-        //     }
-        //     $.post(
-        //         "http://localhost:8000/api/", 
-        //         param, function(r) {
-        //             r = JSON.parse(r);
-        //             console.log(r);
-        //             window.location = 'http://'+r['url'];
-        //         }); 
-        // }); 
+        $("#save_order").click(function() {
+            sq_data = [];
+            nxt = 0;
+            $("#result-list li").each(function() {
+                var tp = $(this).attr('itemprop').trim();
+                if($(this).find('label').text().search('next_url') != -1) {
+                    tp = ''+ tp + ' - ' + nxt; 
+                    nxt = nxt + 1
+                }
+                sq_data.push(''+tp);
+            })
+            param = {
+                'type': 'saveorder', 
+                'sq_data': JSON.stringify(sq_data), 
+                'id': a.id
+            };
+            $.post(
+                api_url, 
+                param, function(r) {
+                    r = JSON.parse(r);
+                    console.log(r); 
+                    if(r['status'] == 'success') {
+                        alert("Saved Order"); 
+                    } else {
+                        alert("Something went wrong!"); 
+                    }
+                } ); 
+
+        }); 
+
     }
 
 };

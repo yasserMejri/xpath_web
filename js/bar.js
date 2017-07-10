@@ -5,7 +5,7 @@
 
 var field_dict = {}
 
-var req = {}, silence =false, req_result = true, test = 1, url_id = -1, fields, nxt_url, nxt_complete_url; 
+var req = {}, silence =false, req_result = true, test = 1, url_id = -1, fields, nxt_url, nxt_complete_url, fields_sq; 
 req['type'] = 'postRequest';
 
 var MOVE_COOLDOWN_PERIOD_MS = 400,
@@ -66,7 +66,7 @@ var lastMoveTimeInMs = 0,
             var dbs_sel = document.getElementById("databases"); 
             dbs_sel.innerHTML = '';
             for(var db in a['data']['databases']) {
-                console.log(db);
+
                 var option = document.createElement('option');
                 option.value = a['data']['databases'][db]['id']
                 option.text = a['data']['databases'][db]['name']
@@ -95,6 +95,7 @@ var lastMoveTimeInMs = 0,
             }
 
             fields = a['data']['fields'];
+            fields_sq = JSON.parse(a['data']['data'][0]['data_sq']);
             var container = document.getElementById("dbfield");
             container.innerHTML = '<option value="-">-</option>';
             for(key in fields) {
@@ -200,7 +201,6 @@ $(document).ready(function() {
     var dbrow = $("#dbrow"); 
     var ts;
     var home_url = window.location;
-    // req['param'] = [];
 
     refreshdb(); 
 
@@ -237,7 +237,7 @@ $(document).ready(function() {
         }
         dbfield.css('border', 'none');
         var content = $("#query").val();
-        // console.log("SAVING REQUEST: " + save_id + " | " + field + " - " + content); 
+
         req['param'] = {
             'type': 'save', 
             'home_url': '#####', 
@@ -260,7 +260,7 @@ $(document).ready(function() {
         }
 
         dbfield.css('border', 'none');
-        // console.log("SAVING REQUEST: " + save_id + " | " + field + " - " + content); 
+
         req['param'] = {
             'type': 'save', 
             'home_url': '#####', 
@@ -304,18 +304,55 @@ $(document).ready(function() {
     $("#dbfield").change(); 
 
     $("#review").click(function() {
-        var conatiner = $(".xh-review-section .modal-content > ul"), tp, cls, rp; 
+        var conatiner = $(".xh-review-section .modal-content > ul"), tp, cls, rp, t_list = []; 
         conatiner.html('');
         $(".xh-review-section .modal-header").html('<h2>'+$("#dbrow").text()+'</h2>');
         console.log(current_row);
+        console.log(fields_sq);
+        for(i in fields_sq) {
+            k = fields_sq[i]
+            if(k.search('-') != -1) {
+                idx = parseInt(k.split('-')[1].trim())
+                k = parseInt(k.split('-')[0].trim())
+                if(current_row[k] == undefined || current_row == '' || current_row[k][idx] == '' || current_row[k][idx] == undefined) {
+                    tp = 'blank';
+                    rp = 'blank';
+                    cls = 'disabled'; 
+                } else {
+                    tp = current_row[k][idx];
+                    if (current_result_row == undefined)
+                        rp = 'blank';
+                    else
+                        rp = current_result_row[k][idx]; 
+                    cls = '';
+                }
+            } else {
+                tp = '';
+                if(current_row[k] == '' || current_row[k] == undefined) {
+                    tp = 'blank';
+                    rp = 'blank';
+                    cls = 'disabled'; 
+                } else {
+                    tp = current_row[k];
+                    if (current_result_row == undefined)
+                        rp = 'blank';
+                    else
+                        rp = current_result_row[k]; 
+                    cls = '';
+                }
+            }
+            conatiner.append('<li class="ui-state-default" itemprop="'+k+'"> <label>'+fields[k]['name']+':</label><span class = "'+cls+'">'+tp+'</span><span class = "result '+cls+'">'+rp+'</span></li>'); 
+            t_list.push(k)
+        }
         for(k in fields) {
+            if(t_list.indexOf(k) != -1)
+                continue;
             tp = '';
-            if(current_row[k] == '') {
+            if(current_row[k] == '' || current_row[k] == undefined) {
                 tp = 'blank';
                 rp = 'blank';
                 cls = 'disabled'; 
-            }
-            else {
+            } else {
                 tp = current_row[k];
                 if (current_result_row == undefined)
                     rp = 'blank';
@@ -323,10 +360,11 @@ $(document).ready(function() {
                     rp = current_result_row[k]; 
                 cls = '';
             }
-            conatiner.append('<li> <label>'+fields[k]['name']+':</label><span class = "'+cls+'">'+tp+'</span><span class = "result '+cls+'">'+rp+'</span></li>'); 
+            conatiner.append('<li class="ui-state-default" itemprop="'+k+'"> <label>'+fields[k]['name']+':</label><span class = "'+cls+'">'+tp+'</span><span class = "result '+cls+'">'+rp+'</span></li>'); 
         }
         if(Number(current_row['is_complete']) == 1)
             $("#markascomplete").text("Mark as Incomplete");
+        console.log(conatiner);
         $("#next_url").attr('href', nxt_url);
         $("#next_incomplete_url").attr('href', nxt_complete_url);
         chrome.runtime.sendMessage({

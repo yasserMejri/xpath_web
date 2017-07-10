@@ -24,12 +24,14 @@
       ],
       "run_at": "document_end",
       "css": [
+        "vendor/jquery/jquery-ui.min.css", 
         "css/content.css", 
         "css/pace-theme-barber-shop.tmpl.css"
       ],
       "js": [
         "vendor/underscore/underscore-min.js",
         "vendor/jquery/jquery-2.1.4.min.js", 
+        "vendor/jquery/jquery-ui.min.js", 
         "js/global.js",
         "js/shared.js",
         "js/content.js"

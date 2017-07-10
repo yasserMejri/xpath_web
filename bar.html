@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link rel="stylesheet" type="text/css" href="css/bar.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui.min.css">
 </head>
 <body>
 <div id="flex-box">
@@ -119,8 +120,11 @@
 
     <div class="modal">
         <div class="modal-header"> </div>
-        <div class="modal-content"> <ul> </ul> </div>
+        <div class="modal-content"> <ul id="result-list"> </ul> </div>
         <div class="modal-footer">
+            <div style="float: left;">
+                <button id="save_order" class="button"> Save Order </button>
+            </div>
             <div>
                 <a class="button nexturl" href="" id="next_url"> Next Url </a>
                 <a class="button nexturl new" href="" id="next_incomplete_url"> Next Incomplete Url </a>
@@ -134,6 +138,7 @@
 <script type="text/javascript" src="vendor/underscore/underscore-min.js"></script>
 <script type="text/javascript" src="vendor/jquery/jquery-2.1.4.min.js"></script>
 
+<script type="text/javascript" src="js/jquery-ui.min.js"> </script>
 <script type="text/javascript" src="js/global.js"></script>
 <script type="text/javascript" src="js/shared.js"></script>
 
