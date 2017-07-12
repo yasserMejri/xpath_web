@@ -805,7 +805,7 @@ function findRelXPath(element1, element2, xpath1, xpath2) {
         if(element1.isSameNode(element2)){
             printConsole("Both elements are same");
 
-            rel_xpath=xpath1+"/self::"+element1.tagName;
+            rel_xpath=xpath1+"/self::"+element1.tagName.toLowerCase();
             updateRelativeXPath(rel_xpath);
 
             return;
@@ -1040,14 +1040,14 @@ function inherit_xpath_from_parents(nodez) {
     for (var k = 0; k < all_Parents.length; k++) {
         if (k == 0) {
             if (id_flag == 1) {
-                new_xpath = "//" + all_Parents[k].tagName + "[@id='"
+                new_xpath = "//" + all_Parents[k].tagName.toLowerCase() + "[@id='"
                         + all_Parents[k].id + "']";
             } else {
-                new_xpath = "//" + all_Parents[k].tagName;
+                new_xpath = "//" + all_Parents[k].tagName.toLowerCase();
 
             }
         } else {
-            new_xpath = new_xpath + "//" + all_Parents[k].tagName;
+            new_xpath = new_xpath + "//" + all_Parents[k].tagName.toLowerCase();
         }
     }
 
@@ -1160,11 +1160,11 @@ function getXpath(node) {
                 val = findXpathWithIndex(val, node);
                 return val;
             } else {
-                return findXpathWithIndex("//"+node.tagName,node);
+                return findXpathWithIndex("//"+node.tagName.toLowerCase(),node);
             }
         } else {
 
-            return findXpathWithIndex("//"+node.tagName,node);
+            return findXpathWithIndex("//"+node.tagName.toLowerCase(),node);
 
         }
 
@@ -1340,7 +1340,7 @@ function updateRelativeXPath(xpath) {
 
         if((xpath.indexOf("/following-sibling::*")>-1) || (xpath.indexOf("/preceding-sibling::*")>-1)){
             xpath = xpath.substring(0, xpath.length - 1);
-            xpath=xpath+firingElement1.tagName;
+            xpath=xpath+firingElement1.tagName.toLowerCase();
         }
 
         if(document.activeElement== document.querySelector('iframe')){
@@ -1362,7 +1362,7 @@ function updateRelativeXPath(xpath) {
     printConsole("Final Xpath="+xpath);
 
     var inHTML=  nodex.innerHTML;
-    var tgName= nodex.tagName;
+    var tgName= nodex.tagName.toLowerCase();
 
     if(!(isNotEmpty(inHTML))){
         inHTML=' ';

@@ -128,9 +128,12 @@ img.xh-highlight {
     float: right;
 }
 .xh-review-section .ui-sortable-handle {
-    background-color: #000;
+    background: #000 !important;
     border: 1px solid #555;
     margin-bottom: 2px;
+}
+.xh-review-section .ui-sortable-handle > * {
+    background: #000 !important;
 }
 .xh-review-section ul {
     list-style: none;
@@ -146,4 +149,7 @@ img.xh-highlight {
     text-decoration: none;
     font-size: 12px;
     height: 40px !important;
+    display: inline-block;
+    white-space: nowrap;
+    width: 160px !important;
 }

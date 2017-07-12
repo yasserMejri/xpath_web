@@ -33,8 +33,8 @@ var lastMoveTimeInMs = 0,
         chrome.runtime.sendMessage(a)
     },
     handleRequest = function(a, b, c) {
-        "update" === a.type ? (null !== a.query && undefined !== a.query && (elementGroup.query.value = a.query, detect_field(a.query, a.results[0])), null !== a.results && (elementGroup.results.value = a.results[0], nodeCountText.nodeValue = a.results[1])) : "addQuery" === a.type ? (b=document.createElement("option"), b.text=a.data, b.value=a.data, elementGroup.queries.appendChild(b), elementGroup.queries.selectedIndex = 0) : "clearQuery" === a.type ? (document.getElementById("queries").innerHTML="") : "postResponse" === a.type && handleResponse(a); 
         // console.log(a);
+        "update" === a.type ? (null !== a.query && undefined !== a.query && (elementGroup.query.value = a.query, detect_field(a.query, a.results[0])), sync_query(), null !== a.results && (elementGroup.results.value = a.results[0], nodeCountText.nodeValue = a.results[1])) : "addQuery" === a.type ? (b=document.createElement("option"), b.text=a.data, b.value=a.data, elementGroup.queries.appendChild(b) ) : "clearQuery" === a.type ? (document.getElementById("queries").innerHTML="") : "postResponse" === a.type && handleResponse(a); 
     },
     handleMouseMove = function(a) {
         a.shiftKey && (a = (new Date).getTime(), a - lastMoveTimeInMs < MOVE_COOLDOWN_PERIOD_MS || (lastMoveTimeInMs = a, chrome.runtime.sendMessage({
@@ -123,8 +123,16 @@ var lastMoveTimeInMs = 0,
             else 
                 document.getElementById('dbrow').style.backgroundColor = 'transparent';
 
-            nxt_url = 'http://'+ a['data']['nxt_url'];
-            nxt_complete_url = 'http://'+ a['data']['nxt_complete_url'];
+            if(a['data']['nxt_url'].substring(0,4) != 'http') {
+                nxt_url = 'http://'+ a['data']['nxt_url'];
+            } else  {
+                nxt_url = a['data']['nxt_url']; 
+            }
+            if(a['data']['nxt_complete_url'].substring(0,4) != 'http') {
+                nxt_complete_url = 'http://'+ a['data']['nxt_complete_url'];
+            } else {
+                nxt_complete_url = a['data']['nxt_complete_url']; 
+            }
 
             req_result = true;
             return ; 
@@ -159,6 +167,9 @@ var lastMoveTimeInMs = 0,
             }
         }
         // $("#dbfield").val('-'); 
+    }, 
+    sync_query = function() {
+        elementGroup.queries.value = elementGroup.query.value;
     }; 
 
 document.getElementById('databases').disabled = true;
@@ -185,6 +196,8 @@ for (var i = 0; i < elementGroupNames.length; i++) {
 function refreshdb() {
     user = localStorage.getItem('user');
     database = localStorage.getItem('database'); 
+    if(!(user || database))
+        return;
     req['param'] = {
         'type': 'get_this', 
         'home_url': '#####', 
@@ -201,6 +214,19 @@ $(document).ready(function() {
     var dbrow = $("#dbrow"); 
     var ts;
     var home_url = window.location;
+
+    console.log("Local Storage");
+    uuser = localStorage.getItem('user');
+    ddatabase = localStorage.getItem('database');
+
+    //---- AUTO LOGIN ---- //
+
+    if(uuser && ddatabase) {
+        $(".manage-pane").toggleClass('loggedout');
+        refreshdb();
+    }
+
+    // ---- AUTO LOGIN ----//
 
     refreshdb(); 
 
@@ -225,7 +251,8 @@ $(document).ready(function() {
     });
 
     $("#select-db").click(function() {
-        localStorage.setItem('database', "-1"); 
+        localStorage.removeItem('database'); 
+        localStorage.removeItem('user');
         $(".manage-pane").toggleClass('loggedout');
     }); 
 
